@@ -162,6 +162,30 @@ offset + addr of log_result + addr of exit
 need to add some more to/change the shell code after this probably
 
 
+----
+
+try using template from part2
+
+offset + address log_result_advanced + address of exit + deadbeef
+
+./try_me "$(printf "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa\xa0\x8e\x04\x08\x20\xe8\x04\x08\xde\xad\xbe\xef")"
+
+
+running in GDB
+use full name of try_me "/home/admin/try_me"
+unset the environment variables LINES, COLUMNS
+
+maybe
+
+try and do ./try_me "string1" "string2"
+
+target the log_result_advanced
+
+try to find the second argument in memory
+
+try to get to the part which calls open using the ebp + offset
+
+need to overwrite the ebp with the location of the second argument in memory
 
 ------------------------------------
 
@@ -170,5 +194,15 @@ PART4
 rop chain?
 
 try: shellstorm ROPGadget
+
+----
+
+also found a hidden file on the server with the rop code
+
+in tmp is .ropchain.py
+
+from the /home/admin run
+
+./try_me "$(../../tmp/.ropchain.py)"
 
 ------------------------------------
